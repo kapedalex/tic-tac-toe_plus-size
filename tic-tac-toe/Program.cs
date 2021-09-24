@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows.Input;
 
 namespace tic_tac_toe
 {
     static class Program
-    {        
-        static void Main(string[] args)
+    {
+        public static void Main(string[] args)
         {
             bool bot_flag = true, active_player_flag = true, noughts_flag = true;
             byte field_side = 3;
-            int a = 0, b = 2;
-            a = b+2;
-            Console.WriteLine(Convert.ToString(a));
             Greetings(ref bot_flag, ref noughts_flag, ref active_player_flag, ref field_side);
             Gameplay(bot_flag, active_player_flag, noughts_flag, field_side);
-            
+
         }
 
         public static void Greetings(ref bool bot_flag, ref bool noughts_flag, ref bool active_player_flag, ref byte field_side)
@@ -31,7 +27,7 @@ namespace tic_tac_toe
                 Console.Clear();
                 Console.WriteLine("Well, I mean, you need to write number '1' or'2', player or robot. Try it again ");
                 str = Console.ReadLine();
-            }         
+            }
             switch (str)
             {
                 case "1":
@@ -39,6 +35,8 @@ namespace tic_tac_toe
                     break;
                 case "2":
                     bot_flag = false;
+                    break;
+                default:
                     break;
             }
             Console.Clear();
@@ -71,6 +69,8 @@ namespace tic_tac_toe
                     Random rnd = new Random();
                     active_player_flag = Convert.ToBoolean(rnd.Next(0, 2));
                     break;
+                default:
+                    break;
             }
             Console.WriteLine("Well, do you want to use noughts or crosses?\n\n1 Noughts\n2 Crosses\n\n");
             str = Console.ReadLine();
@@ -88,10 +88,12 @@ namespace tic_tac_toe
                 case "2":
                     noughts_flag = false;
                     break;
+                default:
+                    break;
             }
             Console.Clear();
             Console.WriteLine("Finally, what is the length 'n' of your n*n field? ( Write the odd number from 3 to 100. )\n\n");
-            while((!byte.TryParse(Console.ReadLine(), out field_side)) || (field_side < 3) || (field_side % 2 == 0) || (field_side > 100))
+            while ((!byte.TryParse(Console.ReadLine(), out field_side)) || (field_side < 3) || (field_side % 2 == 0) || (field_side > 100))
             {
                 Console.Clear();
                 Console.WriteLine("Ha-ha, no, try again. Write the odd number >= 3.");
@@ -101,8 +103,10 @@ namespace tic_tac_toe
         {
             bool turn;
             bool in_game = true;
-            string signboard;
-            MakeConstantText(bot_flag, first_player_flag, noughts_flag, field_side, out signboard);
+            int timer = 0;
+            string winner = "0";
+            int maxturns = field_side * field_side;
+            MakeConstantText(bot_flag, noughts_flag, field_side, out string signboard);
             int length = field_side + 2;
             string[,] map = new string[length, length];
             for (int i = 0; i < length; i++)
@@ -127,6 +131,7 @@ namespace tic_tac_toe
             string temp = map[target[0], target[1]];
             map[target[0], target[1]] = "*";
             string playermark, enemymark;
+
             if (noughts_flag)
             {
                 playermark = "0";
@@ -140,6 +145,7 @@ namespace tic_tac_toe
 
             while (in_game)
             {
+                Wincheck(Points(map, playermark, length), Points(map, enemymark, length), PotentialPoints(map, playermark, length), PotentialPoints(map, enemymark, length), ref in_game, ref winner, maxturns, timer);
                 turn = true;
                 while (turn)
                 {
@@ -147,8 +153,24 @@ namespace tic_tac_toe
                     Console.WriteLine(signboard);
                     DrawMap(map, length);
                     Turn(map, playermark, length, target, ref temp, ref first_player_flag, ref in_game, enemymark, ref turn, ref bot_flag);
-                }                
-            }            
+                    timer++;
+                }
+            }
+
+            switch (winner)
+            {
+                case "0":
+                    Console.WriteLine("No winner");
+                    break;
+                case "1":
+                    Console.WriteLine("Player 1 wins!!!");
+                    break;
+                case "2":
+                    Console.WriteLine("Player 2 wins!!!");
+                    break;
+                default:
+                    break;
+            }
         }
         public static void DrawMap(string[,] array, int length)
         {
@@ -156,21 +178,21 @@ namespace tic_tac_toe
             {
                 for (int k = 0; k < length; k++)
                 {
-                        Console.Write(array[i, k]);
+                    Console.Write(array[i, k]);
                 }
                 Console.Write("\n");
             }
         }
-        public static void Turn(string[,] map, string playermark, int length, byte [] target, ref string temp, ref bool first_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag)
+        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool first_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag)
         {
             if (bot_flag && !first_player_flag)
             {
-                BotPlay(ref turn, length, map,ref in_game,ref first_player_flag, ref enemymark);
+                BotPlay(ref turn, length, map, ref in_game, ref first_player_flag, ref enemymark);
             }
             else
             {
                 PlayerPlay(map, target, ref temp, length, ref first_player_flag, playermark, enemymark, ref turn);
-            }            
+            }
         }
 
         public static void BotPlay(ref bool turn, int length, string[,] map, ref bool in_game, ref bool first_player_flag, ref string enemymark)
@@ -261,14 +283,7 @@ namespace tic_tac_toe
                     map[target[0], target[1]] = temp;
                     if (temp == " ")
                     {
-                        if (first_player_flag)
-                        {
-                            map[target[0], target[1]] = playermark;
-                        }
-                        else
-                        {
-                            map[target[0], target[1]] = enemymark;
-                        }
+                        map[target[0], target[1]] = first_player_flag ? playermark : enemymark;
                         temp = map[target[0], target[1]];
                         map[target[0], target[1]] = "*";
                         first_player_flag = !first_player_flag;
@@ -278,7 +293,7 @@ namespace tic_tac_toe
                 }
             } while (catcher.Key != ConsoleKey.Escape);
         }
-        public static void MakeConstantText(bool bot_flag, bool first_player_flag, bool noughts_flag, byte field_side, out string signboard)
+        public static void MakeConstantText(bool bot_flag, bool noughts_flag, byte field_side, out string signboard)
         {
             string s1 = " two players!!! ", s2 = "cross, ", s3 = Convert.ToString(field_side) + "\n Press the Escape(Esc) key to quit: \n\n";
             if (bot_flag)
@@ -290,6 +305,274 @@ namespace tic_tac_toe
                 s2 = " nought, ";
             }
             signboard = "This is a game between" + s1 + "First player's mark is a" + s2 + " and lenght of a side is: " + s3;
+        }
+
+        public static int Points(string[,] map, string mark, int length)
+        {
+            int playercount = 0;
+            int counter = 0;
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[i, k] == mark)
+                    {
+                        for (int l = k; l <= k + 3; l++)
+                        {
+                            if (map[i, l] == mark)
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[k, i] == mark)
+                    {
+                        for (int l = k; l <= k + 3; l++)
+                        {
+                            if (map[k, i] == mark)
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[i, k] == mark)
+                    {
+                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        {
+                            if (map[m, l] == mark)
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                        }
+
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 3; i < length - 2; k++)
+                {
+                    if (counter == 3)
+                    {
+                        counter = 0;
+                        playercount++;
+                        k += 2;
+                    }
+
+                    if (map[i, k] == mark)
+                    {
+                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        {
+                            if (map[m - 1, l + 1] == mark)
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return playercount;
+        }
+
+        public static int PotentialPoints(string[,] map, string mark, int length)
+        {
+            int playerprobcount = 0;
+            int counter = 0;
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[i, k] == mark || map[i, k] == " ")
+                    {
+                        for (int l = k; l <= k + 3; l++)
+                        {
+                            if (map[i, l] == mark || map[i, l] == " ")
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playerprobcount++;
+                            k += 2;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[k, i] == mark || map[k, i] == " ")
+                    {
+                        for (int l = k; l <= k + 3; l++)
+                        {
+                            if (map[k, i] == mark || map[k, i] == " ")
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playerprobcount++;
+                            k += 2;
+                        }
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 1; i < length - 2; k++)
+                {
+                    if (map[i, k] == mark || map[i, k] == " ")
+                    {
+                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        {
+                            if (map[m, l] == mark || map[m, l] == " ")
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playerprobcount++;
+                            k += 2;
+                        }
+
+                    }
+                }
+            }
+
+            for (int i = 1; i < length - 2; i++)
+            {
+                for (int k = 3; i < length - 2; k++)
+                {
+                    if (counter == 3)
+                    {
+                        counter = 0;
+                        playerprobcount++;
+                        k += 2;
+                    }
+
+                    if (map[i, k] == mark || map[i, k] == " ")
+                    {
+                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        {
+                            if (map[m - 1, l + 1] == mark || map[m - 1, l + 1] == " ")
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return playerprobcount;
+
+        }
+
+        public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner, int maxturns, int timer)
+        {
+            if (playerpotential < enemycount)
+            {
+                in_game = false;
+                winner = "1";
+            }
+            if (enemypotential < playercount)
+            {
+                in_game = false;
+                winner = "2";
+            }
+            if (timer == maxturns)
+            {
+                in_game = false;
+                winner = "0";
+            }
         }
     }
 }
