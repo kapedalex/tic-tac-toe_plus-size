@@ -7,11 +7,35 @@ namespace tic_tac_toe
     {
         public static void Main(string[] args)
         {
-            bool bot_flag = true, active_player_flag = true, noughts_flag = true;
+            bool bot_flag = true, active_player_flag = true, noughts_flag = true, still_playing = true;
             byte field_side = 3;
-            Greetings(ref bot_flag, ref noughts_flag, ref active_player_flag, ref field_side);
-            Gameplay(bot_flag, active_player_flag, noughts_flag, field_side);
-
+            while (still_playing)
+            {
+                Greetings(ref bot_flag, ref noughts_flag, ref active_player_flag, ref field_side);
+                Gameplay(bot_flag, active_player_flag, noughts_flag, field_side);
+                Console.WriteLine("\nDo you wanna play again?\n 1 Yes\n 2 No ");
+                string again = Console.ReadLine();
+                while (again != "1" && again != "2")
+                {
+                    Console.Clear();
+                    Console.WriteLine("\nDO YOU WANNA PLAY AGAIN ?\n\n" +
+                    "1 Yea, sure.\n" +
+                    "2 No.\n");
+                    again = Console.ReadLine();
+                }
+                switch (again)
+                {
+                    case "1":
+                        Console.Clear();
+                        break;
+                    case "2":
+                        still_playing = false;
+                        Console.Clear();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         public static void Greetings(ref bool bot_flag, ref bool noughts_flag, ref bool active_player_flag, ref byte field_side)
@@ -25,7 +49,7 @@ namespace tic_tac_toe
             while (str != "1" && str != "2")
             {
                 Console.Clear();
-                Console.WriteLine("Well, I mean, you need to write number '1' or'2', player or robot. Try it again ");
+                Console.WriteLine("Well, I mean, you need to write number '1' or'2', robot or player. Try it again ");
                 str = Console.ReadLine();
             }
             switch (str)
@@ -145,28 +169,28 @@ namespace tic_tac_toe
 
             while (in_game)
             {
-                Wincheck(Points(map, playermark, length), Points(map, enemymark, length), PotentialPoints(map, playermark, length), PotentialPoints(map, enemymark, length), ref in_game, ref winner, maxturns, timer);
                 turn = true;
                 while (turn)
                 {
                     Console.Clear();
                     Console.WriteLine(signboard);
                     DrawMap(map, length);
-                    Turn(map, playermark, length, target, ref temp, ref first_player_flag, ref in_game, enemymark, ref turn, ref bot_flag);
-                    timer++;
+                    Turn(map, playermark, length, target, ref temp, ref first_player_flag, ref in_game, enemymark, ref turn, ref bot_flag, ref timer);
+
                 }
+                Wincheck(Points(map, playermark, length, temp), Points(map, enemymark, length, temp), PotentialPoints(map, playermark, length, temp), PotentialPoints(map, enemymark, length, temp), ref in_game, ref winner, maxturns, timer);
             }
 
             switch (winner)
             {
                 case "0":
-                    Console.WriteLine("No winner");
+                    Console.WriteLine("\nNo winner\n");
                     break;
                 case "1":
-                    Console.WriteLine("Player 1 wins!!!");
+                    Console.WriteLine("\nPlayer 1 wins!!!\n");
                     break;
                 case "2":
-                    Console.WriteLine("Player 2 wins!!!");
+                    Console.WriteLine("\nPlayer 2 wins!!!\n");
                     break;
                 default:
                     break;
@@ -183,15 +207,16 @@ namespace tic_tac_toe
                 Console.Write("\n");
             }
         }
-        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool first_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag)
+        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool first_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag, ref int timer)
         {
             if (bot_flag && !first_player_flag)
             {
                 BotPlay(ref turn, length, map, ref in_game, ref first_player_flag, ref enemymark);
+                timer++;
             }
             else
             {
-                PlayerPlay(map, target, ref temp, length, ref first_player_flag, playermark, enemymark, ref turn);
+                PlayerPlay(map, target, ref temp, length, ref first_player_flag, playermark, enemymark, ref turn, ref timer);
             }
         }
 
@@ -212,16 +237,20 @@ namespace tic_tac_toe
 
             if (coordinates_for_random.Count == 0)
             {
+                turn = false;
                 in_game = false;
             }
-            Random rnd = new Random();
-            int r = rnd.Next(0, coordinates_for_random.Count);
-            map[Convert.ToInt32(Convert.ToString(coordinates_for_random[r][0])), Convert.ToInt32(Convert.ToString(coordinates_for_random[r][1]))] = enemymark;
-            first_player_flag = !first_player_flag;
-            turn = false;
+            else
+            {
+                Random rnd = new Random();
+                int r = rnd.Next(0, coordinates_for_random.Count);
+                map[Convert.ToInt32(Convert.ToString(coordinates_for_random[r][0])), Convert.ToInt32(Convert.ToString(coordinates_for_random[r][1]))] = enemymark;
+                first_player_flag = !first_player_flag;
+                turn = false;
+            }
         }
 
-        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool first_player_flag, string playermark, string enemymark, ref bool turn)
+        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool first_player_flag, string playermark, string enemymark, ref bool turn, ref int timer)
         {
             ConsoleKeyInfo catcher;
             do // epilepltic simulator
@@ -288,10 +317,11 @@ namespace tic_tac_toe
                         map[target[0], target[1]] = "*";
                         first_player_flag = !first_player_flag;
                         turn = false;
+                        timer++;
                         break;
                     }
                 }
-            } while (catcher.Key != ConsoleKey.Escape);
+            } while (true);
         }
         public static void MakeConstantText(bool bot_flag, bool noughts_flag, byte field_side, out string signboard)
         {
@@ -307,19 +337,49 @@ namespace tic_tac_toe
             signboard = "This is a game between" + s1 + "First player's mark is a" + s2 + " and lenght of a side is: " + s3;
         }
 
-        public static int Points(string[,] map, string mark, int length)
+        public static int Points(string[,] map, string mark, int length, string temp)
         {
             int playercount = 0;
             int counter = 0;
-            for (int i = 1; i < length - 2; i++)
+            // horisontal
+            for (int i = 1; i < length - 1; i++)
             {
-                for (int k = 1; i < length - 2; k++)
+                for (int k = 1; k < length - 3; k++)
                 {
-                    if (map[i, k] == mark)
+                    if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int l = k; l <= k + 3; l++)
+                        for (int l = k; l < k + 3; l++)
                         {
-                            if (map[i, l] == mark)
+                            if (map[i, l] == mark || (map[i, l] == "*" && temp == mark))
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                        }
+                    }
+                }
+            }
+            // vartical
+            for (int i = 1; i < length - 1; i++)
+            {
+                for (int k = 1; k < length - 3; k++)
+                {
+                    if (map[k, i] == mark || (map[k, i] == "*" && temp == mark))
+                    {
+                        for (int l = k; l < k + 3; l++)
+                        {
+                            if (map[l, i] == mark || (map[l, i] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -340,44 +400,16 @@ namespace tic_tac_toe
                 }
             }
 
-            for (int i = 1; i < length - 2; i++)
+            //diag left-right
+            for (int i = 1; i < length - 3; i++)
             {
-                for (int k = 1; i < length - 2; k++)
+                for (int k = 1; k < length - 3; k++)
                 {
-                    if (map[k, i] == mark)
+                    if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int l = k; l <= k + 3; l++)
+                        for (int m = i, l = k; l < k + 3; m++, l++)
                         {
-                            if (map[k, i] == mark)
-                            {
-                                counter++;
-                            }
-                            else
-                            {
-                                counter = 0;
-                                break;
-                            }
-                        }
-
-                        if (counter == 3)
-                        {
-                            counter = 0;
-                            playercount++;
-                            k += 2;
-                        }
-                    }
-                }
-            }
-
-            for (int i = 1; i < length - 2; i++)
-            {
-                for (int k = 1; i < length - 2; k++)
-                {
-                    if (map[i, k] == mark)
-                    {
-                        for (int m = i, l = k; l <= k + 3; m++, l++)
-                        {
-                            if (map[m, l] == mark)
+                            if (map[m, l] == mark || (map[m, l] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -398,23 +430,16 @@ namespace tic_tac_toe
                     }
                 }
             }
-
-            for (int i = 1; i < length - 2; i++)
+            //diag right-left
+            for (int i = 1; i < length - 3; i++)
             {
-                for (int k = 3; i < length - 2; k++)
+                for (int k = 3; k < length - 1; k++)
                 {
-                    if (counter == 3)
+                    if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
                     {
-                        counter = 0;
-                        playercount++;
-                        k += 2;
-                    }
-
-                    if (map[i, k] == mark)
-                    {
-                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        for (int m = i, l = k; l > k - 3; m++, l--)
                         {
-                            if (map[m - 1, l + 1] == mark)
+                            if (map[m, l] == mark || (map[m, l] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -423,6 +448,14 @@ namespace tic_tac_toe
                                 counter = 0;
                                 break;
                             }
+
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
                         }
                     }
                 }
@@ -431,19 +464,21 @@ namespace tic_tac_toe
             return playercount;
         }
 
-        public static int PotentialPoints(string[,] map, string mark, int length)
+        public static int PotentialPoints(string[,] map, string mark, int length, string temp)
         {
-            int playerprobcount = 0;
+
+            int playercount = 0;
             int counter = 0;
-            for (int i = 1; i < length - 2; i++)
+            // horisontal
+            for (int i = 1; i < length - 1; i++)
             {
-                for (int k = 1; i < length - 2; k++)
+                for (int k = 1; k < length - 3; k++)
                 {
-                    if (map[i, k] == mark || map[i, k] == " ")
+                    if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int l = k; l <= k + 3; l++)
+                        for (int l = k; l < k + 3; l++)
                         {
-                            if (map[i, l] == mark || map[i, l] == " ")
+                            if (map[i, l] == mark || map[i, l] == " " || (map[i, l] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -457,22 +492,22 @@ namespace tic_tac_toe
                         if (counter == 3)
                         {
                             counter = 0;
-                            playerprobcount++;
+                            playercount++;
                             k += 2;
                         }
                     }
                 }
             }
-
-            for (int i = 1; i < length - 2; i++)
+            // vertical
+            for (int i = 1; i < length - 1; i++)
             {
-                for (int k = 1; i < length - 2; k++)
+                for (int k = 1; k < length - 3; k++)
                 {
-                    if (map[k, i] == mark || map[k, i] == " ")
+                    if (map[k, i] == mark || map[k, i] == " " || (map[k, i] == "*" && temp == mark))
                     {
-                        for (int l = k; l <= k + 3; l++)
+                        for (int l = k; l < k + 3; l++)
                         {
-                            if (map[k, i] == mark || map[k, i] == " ")
+                            if (map[l, i] == mark || map[l, i] == " " || (map[l, i] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -486,22 +521,23 @@ namespace tic_tac_toe
                         if (counter == 3)
                         {
                             counter = 0;
-                            playerprobcount++;
+                            playercount++;
                             k += 2;
                         }
                     }
                 }
             }
 
-            for (int i = 1; i < length - 2; i++)
+            //diag left-right
+            for (int i = 1; i < length - 3; i++)
             {
-                for (int k = 1; i < length - 2; k++)
+                for (int k = 1; k < length - 3; k++)
                 {
-                    if (map[i, k] == mark || map[i, k] == " ")
+                    if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        for (int m = i, l = k; l < k + 3; m++, l++)
                         {
-                            if (map[m, l] == mark || map[m, l] == " ")
+                            if (map[m, l] == mark || map[m, l] == " " || (map[m, l] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -515,30 +551,23 @@ namespace tic_tac_toe
                         if (counter == 3)
                         {
                             counter = 0;
-                            playerprobcount++;
+                            playercount++;
                             k += 2;
                         }
 
                     }
                 }
             }
-
-            for (int i = 1; i < length - 2; i++)
+            //diag right-left
+            for (int i = 1; i < length - 3; i++)
             {
-                for (int k = 3; i < length - 2; k++)
+                for (int k = 3; k < length - 1; k++)
                 {
-                    if (counter == 3)
+                    if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
                     {
-                        counter = 0;
-                        playerprobcount++;
-                        k += 2;
-                    }
-
-                    if (map[i, k] == mark || map[i, k] == " ")
-                    {
-                        for (int m = i, l = k; l <= k + 3; m++, l++)
+                        for (int m = i, l = k; l > k - 3; m++, l--)
                         {
-                            if (map[m - 1, l + 1] == mark || map[m - 1, l + 1] == " ")
+                            if (map[m, l] == mark || map[m, l] == " " || (map[m, l] == "*" && temp == mark))
                             {
                                 counter++;
                             }
@@ -547,15 +576,22 @@ namespace tic_tac_toe
                                 counter = 0;
                                 break;
                             }
+
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
                         }
                     }
                 }
             }
 
-            return playerprobcount;
+            return playercount;
 
         }
-
         public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner, int maxturns, int timer)
         {
             if (playerpotential < enemycount)
@@ -567,6 +603,11 @@ namespace tic_tac_toe
             {
                 in_game = false;
                 winner = "2";
+            }
+            if (playerpotential == enemypotential && enemypotential - enemycount == 0 && playerpotential - playercount == 0)
+            {
+                in_game = false;
+                winner = "0";
             }
             if (timer == maxturns)
             {
