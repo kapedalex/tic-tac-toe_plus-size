@@ -314,8 +314,10 @@ namespace tic_tac_toe
             int counter = 0;
             HorisontalP(map, mark, length, temp, ref counter, ref playercount);
             VerticalP(map, mark, length, temp, ref counter, ref playercount);
-            DiagLefrRightP(map, mark, length, temp, ref counter, ref playercount);
-            DiagRightLeftP(map, mark, length, temp, ref counter, ref playercount);
+            DiagLefrRightPFirstPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagLefrRightPSecondPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftPFirstPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftPSecondPart(map, mark, length, temp, ref counter, ref playercount);
             return playercount;
         }
 
@@ -382,12 +384,14 @@ namespace tic_tac_toe
                 }
             }
         }
-
-        public static void DiagLefrRightP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        public static void DiagLefrRightPFirstPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
         {
-            for (int i = 1; i < length - 3; i++)
+            int i; int k;
+            for (int a = 1; a < length - 3; a++)
             {
-                for (int k = 1; k < length - 3; k++)
+                k = a;
+                i = 1;
+                while (i < length - 3 && k < length - 3)
                 {
                     if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
                     {
@@ -409,22 +413,27 @@ namespace tic_tac_toe
                             counter = 0;
                             playercount++;
                             k += 2;
+                            i += 2;
                         }
-
                     }
+                    k++;
+                    i++;
                 }
             }
         }
 
-        public static void DiagRightLeftP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        public static void DiagLefrRightPSecondPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
         {
-            for (int i = 1; i < length - 3; i++)
+            int i; int k;
+            for (int a = 2; a < length - 3; a++)
             {
-                for (int k = 3; k < length - 1; k++)
+                k = 1;
+                i = a;
+                while (i < length - 3 && k < length - 3)
                 {
                     if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int m = i, l = k; l > k - 3; m++, l--)
+                        for (int m = i, l = k; l < k + 3; m++, l++)
                         {
                             if (map[m, l] == mark || (map[m, l] == "*" && temp == mark))
                             {
@@ -435,7 +444,6 @@ namespace tic_tac_toe
                                 counter = 0;
                                 break;
                             }
-
                         }
 
                         if (counter == 3)
@@ -443,19 +451,103 @@ namespace tic_tac_toe
                             counter = 0;
                             playercount++;
                             k += 2;
+                            i += 2;
                         }
                     }
+                    k++;
+                    i++;
+                }
+
+            }
+        }
+
+        public static void DiagRightLeftPFirstPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
+            int i; int k;
+            for (int a = 3; a < length - 1; a++)
+            {
+                k = a;
+                i = 1;
+                while (i < length - 3 && k > 2)
+                {
+                    if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
+                    {
+                        for (int m = i, l = k; m < i + 3; m++, l--)
+                        {
+                            if (map[m, l] == mark || (map[m, l] == "*" && temp == mark))
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                            i += 2;
+                        }
+                    }
+                    k--;
+                    i++;
+                }
+
+            }
+        }
+
+        public static void DiagRightLeftPSecondPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
+            int i; int k;
+            for (int a = 2; a < length - 3; a++)
+            {
+                k = length - 2;
+                i = a;
+                while (i < length - 3 && k > 2)
+                {
+                    if (map[i, k] == mark || (map[i, k] == "*" && temp == mark))
+                    {
+                        for (int m = i, l = k; m < i + 3; m++, l--)
+                        {
+                            if (map[m, l] == mark || (map[m, l] == "*" && temp == mark))
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                            i += 2;
+                        }
+                    }
+                    k--;
+                    i++;
                 }
             }
         }
+
         public static int PotentialPoints(string[,] map, string mark, int length, string temp)
         {
             int playercount = 0;
             int counter = 0;
             HorisontalPP(map, mark, length, temp, ref counter, ref playercount);
             VerticalPP(map, mark, length, temp, ref counter, ref playercount);
-            DiagLeftRightPP(map, mark, length, temp, ref counter, ref playercount);
-            DiagRightLeftPP(map, mark, length, temp, ref counter, ref playercount);
+            DiagLeftRightPPFirstPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagLeftRightPPSecondPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftPPFirstPart(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftPPSecondPart(map, mark, length, temp, ref counter, ref playercount);
             return playercount;
         }
 
@@ -522,11 +614,14 @@ namespace tic_tac_toe
             }
         }
 
-        public static void DiagLeftRightPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        public static void DiagLeftRightPPFirstPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
         {
-            for (int i = 1; i < length - 3; i++)
+            int i; int k;
+            for (int a = 1; a < length - 3; a++)
             {
-                for (int k = 1; k < length - 3; k++)
+                k = a;
+                i = 1;
+                while (i < length - 3 && k < length - 3)
                 {
                     if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
                     {
@@ -548,22 +643,27 @@ namespace tic_tac_toe
                             counter = 0;
                             playercount++;
                             k += 2;
+                            i += 2;
                         }
-
                     }
+                    k++;
+                    i++;
                 }
             }
         }
 
-        public static void DiagRightLeftPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        public static void DiagLeftRightPPSecondPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
         {
-            for (int i = 1; i < length - 3; i++)
+            int i; int k;
+            for (int a = 2; a < length - 3; a++)
             {
-                for (int k = 3; k < length - 1; k++)
+                k = 1;
+                i = a;
+                while (i < length - 3 && k < length - 3)
                 {
                     if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
                     {
-                        for (int m = i, l = k; l > k - 3; m++, l--)
+                        for (int m = i, l = k; l < k + 3; m++, l++)
                         {
                             if (map[m, l] == mark || map[m, l] == " " || (map[m, l] == "*" && temp == mark))
                             {
@@ -574,7 +674,6 @@ namespace tic_tac_toe
                                 counter = 0;
                                 break;
                             }
-
                         }
 
                         if (counter == 3)
@@ -582,8 +681,89 @@ namespace tic_tac_toe
                             counter = 0;
                             playercount++;
                             k += 2;
+                            i += 2;
                         }
                     }
+                    k++;
+                    i++;
+                }
+
+            }
+        }
+
+        public static void DiagRightLeftPPFirstPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
+            int i; int k;
+            for (int a = 3; a < length - 1; a++)
+            {
+                k = a;
+                i = 1;
+                while (i < length - 3 && k > 2)
+                {
+                    if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
+                    {
+                        for (int m = i, l = k; m < i + 3; m++, l--)
+                        {
+                            if (map[m, l] == mark || map[m, l] == " " || (map[m, l] == "*" && temp == mark))
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                            i += 2;
+                        }
+                    }
+                    k--;
+                    i++;
+                }
+
+            }
+        }
+
+        public static void DiagRightLeftPPSecondPart(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
+            int i; int k;
+            for (int a = 2; a < length - 3; a++)
+            {
+                k = length - 2;
+                i = a;
+                while (i < length - 3 && k > 2)
+                {
+                    if (map[i, k] == mark || map[i, k] == " " || (map[i, k] == "*" && temp == mark))
+                    {
+                        for (int m = i, l = k; m < i + 3; m++, l--)
+                        {
+                            if (map[m, l] == mark || map[m, l] == " " || (map[m, l] == "*" && temp == mark))
+                            {
+                                counter++;
+                            }
+                            else
+                            {
+                                counter = 0;
+                                break;
+                            }
+                        }
+
+                        if (counter == 3)
+                        {
+                            counter = 0;
+                            playercount++;
+                            k += 2;
+                            i += 2;
+                        }
+                    }
+                    k--;
+                    i++;
                 }
             }
         }
