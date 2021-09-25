@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 namespace tic_tac_toe
 {
-    static class Program
+    internal static class Program
     {
         public static void Main(string[] args)
         {
-            bool bot_flag = true, active_player_flag = true, noughts_flag = true, still_playing = true;
+            bool bot_flag = true, active_player_flag = true, still_playing = true;
             byte field_side = 3;
             while (still_playing)
             {
-                Greetings(ref bot_flag, ref noughts_flag, ref active_player_flag, ref field_side);
-                Gameplay(bot_flag, active_player_flag, noughts_flag, field_side);
+                Greetings(ref bot_flag, ref active_player_flag, ref field_side, out string playermark, out string enemymark);
+                Gameplay(bot_flag, active_player_flag, field_side, playermark, enemymark);
                 Console.WriteLine("\nDo you wanna play again?\n 1 Yes\n 2 No ");
                 string again = Console.ReadLine();
                 while (again != "1" && again != "2")
@@ -25,20 +25,18 @@ namespace tic_tac_toe
                 }
                 switch (again)
                 {
-                    case "1":
-                        Console.Clear();
-                        break;
                     case "2":
                         still_playing = false;
                         Console.Clear();
                         break;
                     default:
+                        Console.Clear();
                         break;
                 }
             }
         }
 
-        public static void Greetings(ref bool bot_flag, ref bool noughts_flag, ref bool active_player_flag, ref byte field_side)
+        public static void Greetings(ref bool bot_flag, ref bool active_player_flag, ref byte field_side, out string playermark, out string enemymark)
         {
             Console.WriteLine("Hello! This is a tic-tac-toe game with scalable field.\n" +
                 "The rules are slightly different from the original:The goal is to collect the biggest number of three marks in a row.\n" +
@@ -52,17 +50,11 @@ namespace tic_tac_toe
                 Console.WriteLine("Well, I mean, you need to write number '1' or'2', robot or player. Try it again ");
                 str = Console.ReadLine();
             }
-            switch (str)
+            bot_flag = str switch
             {
-                case "1":
-                    bot_flag = true;
-                    break;
-                case "2":
-                    bot_flag = false;
-                    break;
-                default:
-                    break;
-            }
+                "1" => true,
+                _ => false,
+            };
             Console.Clear();
             Console.WriteLine("Do u wanna go first?\n\n" +
                 "1 Yea, sure.\n" +
@@ -88,12 +80,10 @@ namespace tic_tac_toe
                     Console.Clear();
                     active_player_flag = false;
                     break;
-                case "3":
+                default:
                     Console.Clear();
                     Random rnd = new Random();
                     active_player_flag = Convert.ToBoolean(rnd.Next(0, 2));
-                    break;
-                default:
                     break;
             }
             Console.WriteLine("Well, do you want to use noughts or crosses?\n\n1 Noughts\n2 Crosses\n\n");
@@ -107,30 +97,39 @@ namespace tic_tac_toe
             switch (str)
             {
                 case "1":
-                    noughts_flag = true;
-                    break;
-                case "2":
-                    noughts_flag = false;
+                    playermark = "0";
+                    enemymark = "X";
                     break;
                 default:
+                    playermark = "X";
+                    enemymark = "0";
                     break;
             }
             Console.Clear();
             Console.WriteLine("Finally, what is the length 'n' of your n*n field? ( Write the odd number from 3 to 100. )\n\n");
-            while ((!byte.TryParse(Console.ReadLine(), out field_side)) || (field_side < 3) || (field_side % 2 == 0) || (field_side > 100))
+            while ((!byte.TryParse(Console.ReadLine(), out field_side)) || (field_side < 3) || (field_side % 2 == 0) || (field_side > 30))
             {
                 Console.Clear();
                 Console.WriteLine("Ha-ha, no, try again. Write the odd number >= 3.");
             }
         }
-        public static void Gameplay(bool bot_flag, bool first_player_flag, bool noughts_flag, byte field_side)
+        public static void MakeConstantText(bool bot_flag, byte field_side, out string signboard, string playermark, string enemymark)
+        {
+            string s1 = " two players!!! ", s2 = playermark, s3 = Convert.ToString(field_side) + "\n Press the Escape(Esc) key to quit: \n\n";
+            if (bot_flag)
+            {
+                s1 = " player and robot!!! ";
+            }
+            signboard = "This is a game between" + s1 + "Operator's mark is " + s2 + " and lenght of a side is: " + s3;
+        }
+
+        public static void Gameplay(bool bot_flag, bool active_player_flag, byte field_side, string playermark, string enemymark)
         {
             bool turn;
             bool in_game = true;
             int timer = 0;
             string winner = "0";
-            int maxturns = field_side * field_side;
-            MakeConstantText(bot_flag, noughts_flag, field_side, out string signboard);
+            MakeConstantText(bot_flag, field_side, out string signboard, playermark, enemymark);
             int length = field_side + 2;
             string[,] map = new string[length, length];
             for (int i = 0; i < length; i++)
@@ -154,19 +153,6 @@ namespace tic_tac_toe
             byte[] target = new byte[2] { 1, 1 };
             string temp = map[target[0], target[1]];
             map[target[0], target[1]] = "*";
-            string playermark, enemymark;
-
-            if (noughts_flag)
-            {
-                playermark = "0";
-                enemymark = "X";
-            }
-            else
-            {
-                playermark = "X";
-                enemymark = "0";
-            }
-
             while (in_game)
             {
                 turn = true;
@@ -175,24 +161,22 @@ namespace tic_tac_toe
                     Console.Clear();
                     Console.WriteLine(signboard);
                     DrawMap(map, length);
-                    Turn(map, playermark, length, target, ref temp, ref first_player_flag, ref in_game, enemymark, ref turn, ref bot_flag, ref timer);
+                    Turn(map, playermark, length, target, ref temp, ref active_player_flag, ref in_game, enemymark, ref turn, ref bot_flag, ref timer);
 
                 }
-                Wincheck(Points(map, playermark, length, temp), Points(map, enemymark, length, temp), PotentialPoints(map, playermark, length, temp), PotentialPoints(map, enemymark, length, temp), ref in_game, ref winner, maxturns, timer);
+                Wincheck(Points(map, playermark, length, temp), Points(map, enemymark, length, temp), PotentialPoints(map, playermark, length, temp), PotentialPoints(map, enemymark, length, temp), ref in_game, ref winner);
             }
 
             switch (winner)
             {
-                case "0":
-                    Console.WriteLine("\nNo winner\n");
-                    break;
                 case "1":
-                    Console.WriteLine("\nPlayer 1 wins!!!\n");
+                    Console.WriteLine("\nOperator wins!!!\n");
                     break;
                 case "2":
-                    Console.WriteLine("\nPlayer 2 wins!!!\n");
+                    Console.WriteLine("\nOperator loses!!!\n");
                     break;
                 default:
+                    Console.WriteLine("\nNo winner\n");
                     break;
             }
         }
@@ -207,20 +191,20 @@ namespace tic_tac_toe
                 Console.Write("\n");
             }
         }
-        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool first_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag, ref int timer)
+        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool active_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag, ref int timer)
         {
-            if (bot_flag && !first_player_flag)
+            if (bot_flag && !active_player_flag)
             {
-                BotPlay(ref turn, length, map, ref in_game, ref first_player_flag, ref enemymark);
+                BotPlay(ref turn, length, map, ref in_game, ref active_player_flag, ref enemymark);
                 timer++;
             }
             else
             {
-                PlayerPlay(map, target, ref temp, length, ref first_player_flag, playermark, enemymark, ref turn, ref timer);
+                PlayerPlay(map, target, ref temp, length, ref active_player_flag, playermark, enemymark, ref turn, ref timer);
             }
         }
 
-        public static void BotPlay(ref bool turn, int length, string[,] map, ref bool in_game, ref bool first_player_flag, ref string enemymark)
+        public static void BotPlay(ref bool turn, int length, string[,] map, ref bool in_game, ref bool active_player_flag, ref string enemymark)
         {
             List<string> coordinates_for_random = new List<string>();
             for (int i = 0; i < length; i++)
@@ -245,12 +229,12 @@ namespace tic_tac_toe
                 Random rnd = new Random();
                 int r = rnd.Next(0, coordinates_for_random.Count);
                 map[Convert.ToInt32(Convert.ToString(coordinates_for_random[r][0])), Convert.ToInt32(Convert.ToString(coordinates_for_random[r][1]))] = enemymark;
-                first_player_flag = !first_player_flag;
+                active_player_flag = !active_player_flag;
                 turn = false;
             }
         }
 
-        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool first_player_flag, string playermark, string enemymark, ref bool turn, ref int timer)
+        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool active_player_flag, string playermark, string enemymark, ref bool turn, ref int timer)
         {
             ConsoleKeyInfo catcher;
             do // epilepltic simulator
@@ -312,10 +296,10 @@ namespace tic_tac_toe
                     map[target[0], target[1]] = temp;
                     if (temp == " ")
                     {
-                        map[target[0], target[1]] = first_player_flag ? playermark : enemymark;
+                        map[target[0], target[1]] = active_player_flag ? playermark : enemymark;
                         temp = map[target[0], target[1]];
                         map[target[0], target[1]] = "*";
-                        first_player_flag = !first_player_flag;
+                        active_player_flag = !active_player_flag;
                         turn = false;
                         timer++;
                         break;
@@ -323,25 +307,20 @@ namespace tic_tac_toe
                 }
             } while (true);
         }
-        public static void MakeConstantText(bool bot_flag, bool noughts_flag, byte field_side, out string signboard)
-        {
-            string s1 = " two players!!! ", s2 = "cross, ", s3 = Convert.ToString(field_side) + "\n Press the Escape(Esc) key to quit: \n\n";
-            if (bot_flag)
-            {
-                s1 = " human and robot!!! ";
-            }
-            if (noughts_flag)
-            {
-                s2 = " nought, ";
-            }
-            signboard = "This is a game between" + s1 + "First player's mark is a" + s2 + " and lenght of a side is: " + s3;
-        }
 
         public static int Points(string[,] map, string mark, int length, string temp)
         {
             int playercount = 0;
             int counter = 0;
-            // horisontal
+            HorisontalP(map, mark, length, temp, ref counter, ref playercount);
+            VerticalP(map, mark, length, temp, ref counter, ref playercount);
+            DiagLefrRightP(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftP(map, mark, length, temp, ref counter, ref playercount);
+            return playercount;
+        }
+
+        public static void HorisontalP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 1; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -370,7 +349,10 @@ namespace tic_tac_toe
                     }
                 }
             }
-            // vartical
+        }
+
+        public static void VerticalP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 1; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -399,8 +381,10 @@ namespace tic_tac_toe
                     }
                 }
             }
+        }
 
-            //diag left-right
+        public static void DiagLefrRightP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 3; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -430,7 +414,10 @@ namespace tic_tac_toe
                     }
                 }
             }
-            //diag right-left
+        }
+
+        public static void DiagRightLeftP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 3; i++)
             {
                 for (int k = 3; k < length - 1; k++)
@@ -460,16 +447,20 @@ namespace tic_tac_toe
                     }
                 }
             }
-
+        }
+        public static int PotentialPoints(string[,] map, string mark, int length, string temp)
+        {
+            int playercount = 0;
+            int counter = 0;
+            HorisontalPP(map, mark, length, temp, ref counter, ref playercount);
+            VerticalPP(map, mark, length, temp, ref counter, ref playercount);
+            DiagLeftRightPP(map, mark, length, temp, ref counter, ref playercount);
+            DiagRightLeftPP(map, mark, length, temp, ref counter, ref playercount);
             return playercount;
         }
 
-        public static int PotentialPoints(string[,] map, string mark, int length, string temp)
+        public static void HorisontalPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
         {
-
-            int playercount = 0;
-            int counter = 0;
-            // horisontal
             for (int i = 1; i < length - 1; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -498,7 +489,9 @@ namespace tic_tac_toe
                     }
                 }
             }
-            // vertical
+        }
+        public static void VerticalPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 1; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -527,8 +520,10 @@ namespace tic_tac_toe
                     }
                 }
             }
+        }
 
-            //diag left-right
+        public static void DiagLeftRightPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 3; i++)
             {
                 for (int k = 1; k < length - 3; k++)
@@ -558,7 +553,10 @@ namespace tic_tac_toe
                     }
                 }
             }
-            //diag right-left
+        }
+
+        public static void DiagRightLeftPP(string[,] map, string mark, int length, string temp, ref int counter, ref int playercount)
+        {
             for (int i = 1; i < length - 3; i++)
             {
                 for (int k = 3; k < length - 1; k++)
@@ -588,28 +586,21 @@ namespace tic_tac_toe
                     }
                 }
             }
-
-            return playercount;
-
         }
-        public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner, int maxturns, int timer)
+
+        public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner)
         {
             if (playerpotential < enemycount)
             {
                 in_game = false;
-                winner = "1";
+                winner = "2";
             }
             if (enemypotential < playercount)
             {
                 in_game = false;
-                winner = "2";
+                winner = "1";
             }
             if (playerpotential == enemypotential && enemypotential - enemycount == 0 && playerpotential - playercount == 0)
-            {
-                in_game = false;
-                winner = "0";
-            }
-            if (timer == maxturns)
             {
                 in_game = false;
                 winner = "0";
