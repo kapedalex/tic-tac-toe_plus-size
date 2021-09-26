@@ -115,7 +115,7 @@ namespace tic_tac_toe
         }
         public static void MakeConstantText(bool bot_flag, byte field_side, out string signboard, string playermark, string enemymark)
         {
-            string s1 = " two players!!! ", s2 = playermark, s3 = Convert.ToString(field_side) + "\n Press the Escape(Esc) key to quit: \n\n";
+            string s1 = " two players!!! ", s2 = playermark, s3 = Convert.ToString(field_side) + "\n\n";
             if (bot_flag)
             {
                 s1 = " player and robot!!! ";
@@ -127,7 +127,6 @@ namespace tic_tac_toe
         {
             bool turn;
             bool in_game = true;
-            int timer = 0;
             string winner = "0";
             MakeConstantText(bot_flag, field_side, out string signboard, playermark, enemymark);
             int length = field_side + 2;
@@ -161,7 +160,7 @@ namespace tic_tac_toe
                     Console.Clear();
                     Console.WriteLine(signboard);
                     DrawMap(map, length);
-                    Turn(map, playermark, length, target, ref temp, ref active_player_flag, ref in_game, enemymark, ref turn, ref bot_flag, ref timer);
+                    Turn(map, playermark, length, target, ref temp, ref active_player_flag, ref in_game, enemymark, ref turn, ref bot_flag);
 
                 }
                 Wincheck(Points(map, playermark, length, temp), Points(map, enemymark, length, temp), PotentialPoints(map, playermark, length, temp), PotentialPoints(map, enemymark, length, temp), ref in_game, ref winner);
@@ -191,16 +190,15 @@ namespace tic_tac_toe
                 Console.Write("\n");
             }
         }
-        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool active_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag, ref int timer)
+        public static void Turn(string[,] map, string playermark, int length, byte[] target, ref string temp, ref bool active_player_flag, ref bool in_game, string enemymark, ref bool turn, ref bool bot_flag)
         {
             if (bot_flag && !active_player_flag)
             {
                 BotPlay(ref turn, length, map, ref in_game, ref active_player_flag, ref enemymark);
-                timer++;
             }
             else
             {
-                PlayerPlay(map, target, ref temp, length, ref active_player_flag, playermark, enemymark, ref turn, ref timer);
+                PlayerPlay(map, target, ref temp, length, ref active_player_flag, playermark, enemymark, ref turn);
             }
         }
 
@@ -234,7 +232,7 @@ namespace tic_tac_toe
             }
         }
 
-        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool active_player_flag, string playermark, string enemymark, ref bool turn, ref int timer)
+        public static void PlayerPlay(string[,] map, byte[] target, ref string temp, int length, ref bool active_player_flag, string playermark, string enemymark, ref bool turn)
         {
             ConsoleKeyInfo catcher;
             do // epilepltic simulator
@@ -301,7 +299,6 @@ namespace tic_tac_toe
                         map[target[0], target[1]] = "*";
                         active_player_flag = !active_player_flag;
                         turn = false;
-                        timer++;
                         break;
                     }
                 }
