@@ -5,7 +5,7 @@ namespace tic_tac_toe
 {
     internal static class Program
     {
-        public static void Main(string[] args)
+        public static void Main()
         {
             bool bot_flag = true, active_player_flag = true, still_playing = true;
             byte field_side = 3;
@@ -113,7 +113,7 @@ namespace tic_tac_toe
                 Console.WriteLine("Ha-ha, no, try again. Write the odd number >= 3.");
             }
         }
-        public static void MakeConstantText(bool bot_flag, byte field_side, out string signboard, string playermark, string enemymark)
+        public static void MakeConstantText(bool bot_flag, byte field_side, out string signboard, string playermark)
         {
             string s1 = " two players!!! ", s2 = playermark, s3 = Convert.ToString(field_side) + "\n\n";
             if (bot_flag)
@@ -128,7 +128,7 @@ namespace tic_tac_toe
             bool turn;
             bool in_game = true;
             string winner = "0";
-            MakeConstantText(bot_flag, field_side, out string signboard, playermark, enemymark);
+            MakeConstantText(bot_flag, field_side, out string signboard, playermark);
             int length = field_side + 2;
             string[,] map = new string[length, length];
             for (int i = 0; i < length; i++)
@@ -303,6 +303,25 @@ namespace tic_tac_toe
                     }
                 }
             } while (true);
+        }
+
+        public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner)
+        {
+            if (playerpotential < enemycount)
+            {
+                in_game = false;
+                winner = "2";
+            }
+            if (enemypotential < playercount)
+            {
+                in_game = false;
+                winner = "1";
+            }
+            if (playerpotential == enemypotential && enemypotential - enemycount == 0 && playerpotential - playercount == 0)
+            {
+                in_game = false;
+                winner = "0";
+            }
         }
 
         public static int Points(string[,] map, string mark, int length, string temp)
@@ -762,25 +781,6 @@ namespace tic_tac_toe
                     k--;
                     i++;
                 }
-            }
-        }
-
-        public static void Wincheck(int playercount, int enemycount, int playerpotential, int enemypotential, ref bool in_game, ref string winner)
-        {
-            if (playerpotential < enemycount)
-            {
-                in_game = false;
-                winner = "2";
-            }
-            if (enemypotential < playercount)
-            {
-                in_game = false;
-                winner = "1";
-            }
-            if (playerpotential == enemypotential && enemypotential - enemycount == 0 && playerpotential - playercount == 0)
-            {
-                in_game = false;
-                winner = "0";
             }
         }
     }
